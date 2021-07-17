@@ -18,7 +18,7 @@
 @endsection
 
 @section('content')
-    
+
     <x-alert />
 
     <x-message type="info" :count="1 + 1" class="display-1">
@@ -41,9 +41,16 @@
             </tr>
         </thead>
         <tbody>
+{{--        <td><img src="--}}
+{{--                    @if (isset($product->image_path))--}}
+{{--            {{ asset('storage/'.$product->image_path) }}--}}
+{{--            @else--}}c
+{{--            {{  $product->image_url }}--}}
+{{--            @endif--}}
+{{--                " width="60" alt=""></td>--}}
             @foreach($products as $product)
             <tr>
-                <td><img src="{{ $product->image_url }}" width="60" alt=""></td>
+                <td><img src="{{ asset('storage/'.$product->image_path) }}" width="60" alt=""></td>
                 <td>{{ $product->name }}</td>
                 <td>{{ $product->category_name }}</td>
                 <td>{{ $product->formatted_price }}</td>
@@ -63,7 +70,7 @@
 
 
     {{ $products->links() }}
-    
+
 
 @endsection
 

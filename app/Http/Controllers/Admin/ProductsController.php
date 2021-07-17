@@ -5,22 +5,20 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
-use App\Scopes\ActiveStatusScope;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class ProductsController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
-        $products = Product::withoutGlobalScopes([ActiveStatusScope::class])
-            ->join('categories', 'categories.id', '=', 'products.category_id')
+        $products = Product::join('categories', 'categories.id', '=', 'products.category_id')
             ->select([
                 'products.*',
                 'categories.name as category_name',
@@ -36,7 +34,7 @@ class ProductsController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function create()
     {
@@ -51,17 +49,24 @@ class ProductsController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @return Response
      */
     public function store(Request $request)
     {
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $image_path = $file->store('product_image', 'public');
+            $request->merge([
+                'image_path' => $image_path,
+            ]);
+        }
         $request->validate(Product::validateRules());
 
         /*$request->merge([
             'slug' => Str::slug($request->post('name')),
         ]);*/
-        $product = Product::create( $request->all() );
+        $product = Product::create($request->all());
 
         return redirect()->route('products.index')
             ->with('success', "Product ($product->name) created.");
@@ -71,8 +76,8 @@ class ProductsController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param int $id
+     * @return Response
      */
     public function show($id)
     {
@@ -85,8 +90,8 @@ class ProductsController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param int $id
+     * @return Response
      */
     public function edit($id)
     {
@@ -100,15 +105,15 @@ class ProductsController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @param int $id
+     * @return Response
      */
     public function update(Request $request, $id)
     {
         $product = Product::withoutGlobalScope('active')->findOrFail($id);
 
-        $request->validate( Product::validateRules() );
+        $request->validate(Product::validateRules());
 
         if ($request->hasFile('image')) {
             $file = $request->file('image'); // UplodedFile Object
@@ -131,7 +136,7 @@ class ProductsController extends Controller
             ]);
         }
 
-        $product->update( $request->all() );
+        $product->update($request->all());
 
         return redirect()->route('products.index')
             ->with('success', "Product ($product->name) updated.");
@@ -140,15 +145,15 @@ class ProductsController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param int $id
+     * @return Response
      */
     public function destroy($id)
     {
         $product = Product::withoutGlobalScope('active')->findOrFail($id);
         $product->delete();
 
-        //Storage::disk('uploads')->delete($product->image_path);
+        Storage::disk('uploads')->delete($product->image_path);
         //unlink(public_path('uploads/' . $product->image_path));
 
         return redirect()->route('products.index')
@@ -175,7 +180,7 @@ class ProductsController extends Controller
 
         Product::withoutGlobalScope('active')->onlyTrashed()->restore();
         return redirect()->route('products.index')
-                ->with('success', "All trashed products restored.");
+            ->with('success', "All trashed products restored.");
     }
 
     public function forceDelete($id = null)
@@ -190,6 +195,6 @@ class ProductsController extends Controller
 
         Product::withoutGlobalScope('active')->onlyTrashed()->forceDelete();
         return redirect()->route('products.index')
-                ->with('success', "All trashed products deleted forever.");
+            ->with('success', "All trashed products deleted forever.");
     }
 }

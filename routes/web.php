@@ -24,6 +24,7 @@ Route::get('/dashboard', function () {
 })->middleware(['auth'])->name('dashboard');
 
 require __DIR__.'/auth.php';
+Route::group(['middleware' => 'auth'],function(){
 
 Route::get('/admin/categories', 'Admin\CategoriesController@index')
     ->name('categories.index');
@@ -50,3 +51,4 @@ Route::delete('/admin/products/trash/{id?}', [ProductsController::class, 'forceD
 
 Route::resource('/admin/products', 'Admin\ProductsController')
     ->middleware(['auth', 'password.confirm']);
+});

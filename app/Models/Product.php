@@ -16,10 +16,11 @@ class Product extends Model
 {
     use HasFactory;
     use SoftDeletes;
-    
+
     const STATUS_ACTIVE = 'active';
     const STATUS_DRAFT  = 'draft';
-    
+
+
     protected $fillable = [
         'name', 'slug', 'description', 'image_path', 'price', 'sale_price',
         'quantity', 'weight', 'width', 'height', 'length', 'status',
@@ -35,14 +36,14 @@ class Product extends Model
 
     protected static function booted()
     {
-        //static::addGlobalScope(new ActiveStatusScope());
+        static::addGlobalScope(new ActiveStatusScope());
 
-        /*static::addGlobalScope('owner', function(Builder $builder) {
-            $user = Auth::user();
-            if ($user && $user->type == 'store') {
-                $builder->where('products.user_id', '=', $user->id);
-            }
-        });*/
+//        static::addGlobalScope('owner', function(Builder $builder) {
+//            $user = Auth::user();
+//            if ($user && $user->type == 'store') {
+//                $builder->where('products.user_id', '=', $user->id);
+//            }
+//        });
     }
 
     public function scopeActive(Builder $builder)
@@ -87,7 +88,7 @@ class Product extends Model
             return $this->image_path;
         }
 
-        return asset('uploads/' . $this->image_path);
+        return asset('Storage/product_image/' . $this->image_path);
     }
 
     // Mutators: set{AttributeName}Attribute
@@ -97,9 +98,5 @@ class Product extends Model
         $this->attributes['slug'] = Str::slug($value);
     }
 
-    public function getFormattedPriceAttribute()
-    {
-        $fomatter = new NumberFormatter(App::getLocale(), NumberFormatter::CURRENCY);
-        return $fomatter->formatCurrency($this->price, 'EUR');
-    }
+
 }
